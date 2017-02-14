@@ -74,6 +74,7 @@ func main() {
 			fmt.Printf("Skipping %s. Already in archive.\n", i.Enclosure.Url)
 			continue
 		}
+		fmt.Printf("Saving %s...\n", i.Enclosure.Url)
 		response, err := http.Get(i.Enclosure.Url)
 		if err != nil {
 			fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
@@ -86,7 +87,6 @@ func main() {
 			response.Body.Close()
 			continue
 		}
-		fmt.Printf("Saving %s...\n", i.Enclosure.Url)
 		_, err = io.Copy(file, response.Body)
 		if err != nil {
 			fmt.Printf("Error writing file %s: %s\n", filepath, err)
