@@ -1,3 +1,4 @@
 .idea
-souparchive
+souparchive_*
 archive
+.DS_Store
