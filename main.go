@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"sync"
 )
 
 type rss struct {
@@ -64,44 +65,69 @@ func main() {
 	var feed rss
 	xml.Unmarshal(feedBody, &feed)
 
+	var wg sync.WaitGroup
+
 	a, err := readArchive()
 	if err != nil {
-		fmt.Println("No archive data found. Will create a fresh one")
+		// no archive yet. it will be created
+		a = archive{}
 	}
+
+	c := make(chan string)
 
 	for _, i := range feed.Channel.Items {
-		if inArchive(i.Guid, a) {
-			fmt.Printf("Skipping %s. Already in archive.\n", i.Enclosure.Url)
-			continue
-		}
-		fmt.Printf("Saving %s...\n", i.Enclosure.Url)
-		response, err := http.Get(i.Enclosure.Url)
-		if err != nil {
-			fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
-			continue
-		}
-		filepath := "archive/" + path.Base(i.Enclosure.Url)
-		file, err := os.Create(filepath)
-		if err != nil {
-			fmt.Printf("Error opening file %s: %s\n", filepath, err)
+		wg.Add(1)
+		go func(i item, c chan string) {
+			defer wg.Done()
+			if inArchive(i.Guid, a) {
+				fmt.Printf("Skipping %s. Already in archive.\n", i.Enclosure.Url)
+				return
+			}
+			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
+			response, err := http.Get(i.Enclosure.Url)
+			if err != nil {
+				fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
+				return
+			}
+			filepath := "archive/" + path.Base(i.Enclosure.Url)
+			file, err := os.Create(filepath)
+			if err != nil {
+				fmt.Printf("Error opening file %s: %s\n", filepath, err)
+				response.Body.Close()
+				return
+			}
+			_, err = io.Copy(file, response.Body)
+			if err != nil {
+				fmt.Printf("Error writing file %s: %s\n", filepath, err)
+				response.Body.Close()
+				return
+			}
 			response.Body.Close()
-			continue
-		}
-		_, err = io.Copy(file, response.Body)
-		if err != nil {
-			fmt.Printf("Error writing file %s: %s\n", filepath, err)
-			response.Body.Close()
-			continue
-		}
-		response.Body.Close()
-		file.Close()
+			file.Close()
 
-		a.Guid = append(a.Guid, i.Guid)
-		saveArchive(a)
+			c <- i.Guid
+		}(i, c)
 	}
+
+	waitForArchive := make(chan bool)
+	go func(c chan string) {
+		for guid := range c {
+			addToArchive(guid)
+		}
+		waitForArchive <- true
+	}(c)
+
+	wg.Wait()
+	close(c)
+	<-waitForArchive
 }
 
-func saveArchive(a archive) {
+func addToArchive(guid string) {
+	a, err := readArchive()
+	if err != nil {
+		a = archive{}
+	}
+	a.Guid = append(a.Guid, guid)
 	data, err := json.Marshal(a)
 	if err != nil {
 		fmt.Println("Error marshalling archive data: ", err)
