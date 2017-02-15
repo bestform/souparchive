@@ -73,6 +73,14 @@ func main() {
 		a = archive{}
 	}
 
+	if _, err := os.Stat("archive"); os.IsNotExist(err) {
+		err = os.Mkdir("archive", 0755)
+		if err != nil {
+			fmt.Printf("Error creating archive: %s\n", err)
+			os.Exit(1)
+		}
+	}
+
 	c := make(chan string)
 
 	for _, i := range feed.Channel.Items {
@@ -84,16 +92,17 @@ func main() {
 				return
 			}
 			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
-			response, err := http.Get(i.Enclosure.Url)
-			if err != nil {
-				fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
-				return
-			}
+
 			filepath := "archive/" + path.Base(i.Enclosure.Url)
 			file, err := os.Create(filepath)
 			if err != nil {
 				fmt.Printf("Error opening file %s: %s\n", filepath, err)
-				response.Body.Close()
+				return
+			}
+
+			response, err := http.Get(i.Enclosure.Url)
+			if err != nil {
+				fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
 				return
 			}
 			_, err = io.Copy(file, response.Body)
