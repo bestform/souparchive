@@ -105,6 +105,10 @@ func main() {
 				fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
 				return
 			}
+			if response.StatusCode != http.StatusOK {
+				fmt.Printf("Error fetching %s: Status %d\n", i.Enclosure.Url, response.StatusCode)
+				return
+			}
 			_, err = io.Copy(file, response.Body)
 			if err != nil {
 				fmt.Printf("Error writing file %s: %s\n", filepath, err)
