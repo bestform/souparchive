@@ -1,8 +1,6 @@
 package main
 
 import (
-	"encoding/json"
-	"encoding/xml"
 	"flag"
 	"fmt"
 	"io"
@@ -11,33 +9,9 @@ import (
 	"os"
 	"path"
 	"sync"
+	"github.com/bestform/souparchive/feed"
+	"github.com/bestform/souparchive/db"
 )
-
-type rss struct {
-	Channel channel `xml:"channel"`
-}
-
-type channel struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	Description string `xml:"description"`
-	Items       []item `xml:"item"`
-}
-
-type item struct {
-	Enclosure enclosure `xml:"enclosure"`
-	Link      string    `xml:"link"`
-	Guid      string    `xml:"guid"`
-}
-
-type enclosure struct {
-	Url  string `xml:"url,attr"`
-	Type string `xml:"type,attr"`
-}
-
-type archive struct {
-	Guid []string `json:"guid"`
-}
 
 func main() {
 
@@ -49,7 +23,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	url := fmt.Sprintf("http://%s.soup.io/rss", *accountPtr)
+	url := feed.GetFeedUrlForUsername(*accountPtr)
 	feedResponse, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Error fetching %s: %s", url, err)
@@ -58,36 +32,26 @@ func main() {
 	defer feedResponse.Body.Close()
 	feedBody, err := ioutil.ReadAll(feedResponse.Body)
 	if err != nil {
-		fmt.Printf("Error reading feed from %s: %s", url, err)
+		fmt.Printf("Error reading rssFeed from %s: %s", url, err)
 		os.Exit(1)
 	}
 
-	var feed rss
-	xml.Unmarshal(feedBody, &feed)
+	rssFeed := feed.NewFeedFromXml(feedBody)
 
 	var wg sync.WaitGroup
 
-	a, err := readArchive()
-	if err != nil {
-		// no archive yet. it will be created
-		a = archive{}
-	}
+	a := db.NewArchive("archive/guids.json")
+	a.Read()
 
-	if _, err := os.Stat("archive"); os.IsNotExist(err) {
-		err = os.Mkdir("archive", 0755)
-		if err != nil {
-			fmt.Printf("Error creating archive: %s\n", err)
-			os.Exit(1)
-		}
-	}
+
 
 	c := make(chan string)
 
-	for _, i := range feed.Channel.Items {
+	for _, i := range rssFeed.Channel.Items {
 		wg.Add(1)
-		go func(i item, c chan string) {
+		go func(i feed.Item, c chan string) {
 			defer wg.Done()
-			if inArchive(i.Guid, a) {
+			if a.Contains(i.Guid) {
 				fmt.Printf("Skipping %s. Already in archive.\n", i.Enclosure.Url)
 				return
 			}
@@ -125,7 +89,12 @@ func main() {
 	waitForArchive := make(chan bool)
 	go func(c chan string) {
 		for guid := range c {
-			addToArchive(guid)
+			a.Read()
+			a.Add(guid)
+			err := a.Persist()
+			if err != nil {
+				fmt.Println("error persisting database", err)
+			}
 		}
 		waitForArchive <- true
 	}(c)
@@ -135,42 +104,7 @@ func main() {
 	<-waitForArchive
 }
 
-func addToArchive(guid string) {
-	a, err := readArchive()
-	if err != nil {
-		a = archive{}
-	}
-	a.Guid = append(a.Guid, guid)
-	data, err := json.Marshal(a)
-	if err != nil {
-		fmt.Println("Error marshalling archive data: ", err)
-		return
-	}
-	ioutil.WriteFile("archive/guids.json", data, 0600)
-}
 
-func inArchive(guid string, a archive) bool {
-	for _, s := range a.Guid {
-		if guid == s {
-			return true
-		}
-	}
 
-	return false
-}
 
-func readArchive() (archive, error) {
-	var a archive
 
-	archiveData, err := ioutil.ReadFile("archive/guids.json")
-	if err != nil {
-		return a, err
-	}
-
-	err = json.Unmarshal(archiveData, &a)
-	if err != nil {
-		return a, err
-	}
-
-	return a, nil
-}
