@@ -1,6 +1,8 @@
 SOUP ARCHIVE
 ------------
 
+[![Build Status](https://travis-ci.org/bestform/souparchive.svg?branch=master)](https://travis-ci.org/bestform/souparchive)
+
 Usage:
 
     ./souparchive -user YOURUSERNAME
