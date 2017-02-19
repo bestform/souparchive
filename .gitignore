@@ -1,4 +1,5 @@
 .idea
-souparchive_*
+souparchive*
 archive
+trace.out
 .DS_Store

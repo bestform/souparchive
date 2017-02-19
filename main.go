@@ -8,12 +8,25 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"runtime/trace"
 	"sync"
-	"github.com/bestform/souparchive/feed"
+
 	"github.com/bestform/souparchive/db"
+	"github.com/bestform/souparchive/feed"
 )
 
+var DEBUG = false
+
 func main() {
+	if DEBUG {
+		file, err := os.Create("trace.out")
+		if err != nil {
+			panic("Error creating trace file")
+		}
+		defer file.Close()
+		trace.Start(file)
+		defer trace.Stop()
+	}
 
 	accountPtr := flag.String("user", "", "soup.io username")
 	flag.Parse()
@@ -43,8 +56,6 @@ func main() {
 	a := db.NewArchive("archive/guids.json")
 	a.Read()
 
-
-
 	c := make(chan string)
 
 	for _, i := range rssFeed.Channel.Items {
@@ -52,17 +63,10 @@ func main() {
 		go func(i feed.Item, c chan string) {
 			defer wg.Done()
 			if a.Contains(i.Guid) {
-				fmt.Printf("Skipping %s. Already in archive.\n", i.Enclosure.Url)
+				// already in archive
 				return
 			}
 			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
-
-			filepath := "archive/" + path.Base(i.Enclosure.Url)
-			file, err := os.Create(filepath)
-			if err != nil {
-				fmt.Printf("Error opening file %s: %s\n", filepath, err)
-				return
-			}
 
 			response, err := http.Get(i.Enclosure.Url)
 			if err != nil {
@@ -73,10 +77,19 @@ func main() {
 				fmt.Printf("Error fetching %s: Status %d\n", i.Enclosure.Url, response.StatusCode)
 				return
 			}
+
+			filepath := "archive/" + path.Base(i.Enclosure.Url)
+			file, err := os.Create(filepath)
+			if err != nil {
+				fmt.Printf("Error opening file %s: %s\n", filepath, err)
+				return
+			}
+
 			_, err = io.Copy(file, response.Body)
 			if err != nil {
 				fmt.Printf("Error writing file %s: %s\n", filepath, err)
 				response.Body.Close()
+				file.Close()
 				return
 			}
 			response.Body.Close()
@@ -103,8 +116,3 @@ func main() {
 	close(c)
 	<-waitForArchive
 }
-
-
-
-
-
