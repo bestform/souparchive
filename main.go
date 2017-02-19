@@ -14,6 +14,7 @@ import (
 	"github.com/bestform/souparchive/fetch"
 )
 
+// DEBUG will write a trace if set to true. The only way to set this to true is to manipulate this very code
 var DEBUG = false
 
 func main() {
