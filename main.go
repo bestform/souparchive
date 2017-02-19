@@ -3,16 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
 	"runtime/trace"
 	"sync"
 
 	"github.com/bestform/souparchive/db"
 	"github.com/bestform/souparchive/feed"
+	"github.com/bestform/souparchive/fetch"
 )
 
 var DEBUG = false
@@ -60,43 +59,16 @@ func main() {
 
 	for _, i := range rssFeed.Channel.Items {
 		wg.Add(1)
-		go func(i feed.Item, c chan string) {
+		go func(i feed.Item, a db.Archive, c chan string) {
 			defer wg.Done()
-			if a.Contains(i.Guid) {
-				// already in archive
-				return
-			}
 			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
-
-			response, err := http.Get(i.Enclosure.Url)
+			guid, err := fetch.Fetch(i, a)
 			if err != nil {
-				fmt.Printf("Error fetching %s: %s\n", i.Enclosure.Url, err)
+				fmt.Println(err)
 				return
 			}
-			if response.StatusCode != http.StatusOK {
-				fmt.Printf("Error fetching %s: Status %d\n", i.Enclosure.Url, response.StatusCode)
-				return
-			}
-
-			filepath := "archive/" + path.Base(i.Enclosure.Url)
-			file, err := os.Create(filepath)
-			if err != nil {
-				fmt.Printf("Error opening file %s: %s\n", filepath, err)
-				return
-			}
-
-			_, err = io.Copy(file, response.Body)
-			if err != nil {
-				fmt.Printf("Error writing file %s: %s\n", filepath, err)
-				response.Body.Close()
-				file.Close()
-				return
-			}
-			response.Body.Close()
-			file.Close()
-
-			c <- i.Guid
-		}(i, c)
+			c <- guid
+		}(i, a, c)
 	}
 
 	waitForArchive := make(chan bool)
