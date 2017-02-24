@@ -12,6 +12,7 @@ import (
 	"github.com/bestform/souparchive/db"
 	"github.com/bestform/souparchive/feed"
 	"github.com/bestform/souparchive/fetch"
+	"github.com/bestform/souparchive/host"
 )
 
 // DEBUG will write a trace if set to true. The only way to set this to true is to manipulate this very code
@@ -29,7 +30,17 @@ func main() {
 	}
 
 	accountPtr := flag.String("user", "", "soup.io username")
+	hostLocalArchive := flag.Bool("host", false, "host the local archive on port 8080")
 	flag.Parse()
+
+	if *hostLocalArchive {
+		err := host.Host("8080")
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		os.Exit(0)
+	}
 
 	if *accountPtr == "" {
 		flag.Usage()

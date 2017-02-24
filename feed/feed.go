@@ -47,7 +47,7 @@ type localFileLister interface {
 
 type defaultLocalFileLister struct {}
 func (d defaultLocalFileLister) getLocalFilesInfo() ([]os.FileInfo, error) {
-	return ioutil.ReadDir("../archive")
+	return ioutil.ReadDir("archive")
 }
 
 var fileLister localFileLister = defaultLocalFileLister{}
