@@ -78,7 +78,7 @@ func TestFetchOfCorrectUrl(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 	i.Guid = "foo"
-	i.Enclosure.Url = "testURL"
+	i.Attributes.Url = "testURL"
 
 	Fetch(i, a)
 	if mockHttpClient.askedForUrl != "testURL" {

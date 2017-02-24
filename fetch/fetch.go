@@ -61,15 +61,15 @@ var httpc httpClient = &defaultHttpClient{}
 func Fetch(i feed.Item, a db.Archive) (string, error) {
 	if a.Contains(i.Guid) {
 		// already in archive
-		return "", errors.New(i.Enclosure.Url + " already in archive")
+		return "", errors.New(i.Attributes.Url + " already in archive")
 	}
 
-	response, err := httpc.Get(i.Enclosure.Url)
+	response, err := httpc.Get(i.Attributes.Url)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error fetching %s: %s", i.Enclosure.Url, err))
+		return "", errors.New(fmt.Sprintf("Error fetching %s: %s", i.Attributes.Url, err))
 	}
 	if response.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("Error fetching %s: Status %d", i.Enclosure.Url, response.StatusCode))
+		return "", errors.New(fmt.Sprintf("Error fetching %s: Status %d", i.Attributes.Url, response.StatusCode))
 	}
 
 	filepath := "archive/" + path.Base(i.Enclosure.Url)

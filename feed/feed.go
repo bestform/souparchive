@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"io/ioutil"
+	"encoding/json"
 )
 
 // Rss it the root node of the rss feed containing just one Channel node
@@ -25,6 +26,8 @@ type Item struct {
 	Enclosure Enclosure `xml:"enclosure"`
 	Link      string    `xml:"link"`
 	Guid      string    `xml:"guid"`
+	AttributesSource string   `xml:"attributes"`
+	Attributes Attributes
 }
 
 // Enclosure contains the url and type of the item
@@ -33,10 +36,22 @@ type Enclosure struct {
 	Type string `xml:"type,attr"`
 }
 
+type Attributes struct {
+	Type string `json:"type"`
+	Url string  `json:"url"`
+}
+
 // NewFeedFromXml produces an Rss struct with the information based on the given xml
 func NewFeedFromXml(input []byte) Rss {
 	var feed Rss
 	xml.Unmarshal(input, &feed)
+
+	for i, item := range feed.Channel.Items {
+		source := item.AttributesSource
+		var attr Attributes
+		json.Unmarshal([]byte(source), &attr)
+		feed.Channel.Items[i].Attributes = attr
+	}
 
 	return feed
 }

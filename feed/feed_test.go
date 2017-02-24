@@ -8,18 +8,24 @@ import (
 
 func TestUnmarshallingXml(t *testing.T) {
 	input := `<?xml version="1.0" encoding="UTF-8"?>
-<rss>
+<rss xmlns:soup="http://www.soup.io/rss" version="2.0">
   <channel>
     <title>Testtitle</title>
     <link>Testlink</link>
     <description>Testdescription</description>
     <item>
       <enclosure url="enc1Url" type="enc1Type" />
+       <soup:attributes>
+	 {"type":"attrType1","url":"attrUrl1"}
+       </soup:attributes>
        <link>Item1Link</link>
        <guid>Item1GUID</guid>
     </item>
     <item>
       <enclosure url="enc2Url" type="enc2Type" />
+       <soup:attributes>
+	 {"type":"attrType2","url":"attrUrl2"}
+       </soup:attributes>
        <link>Item2Link</link>
        <guid>Item2GUID</guid>
     </item>
@@ -40,16 +46,20 @@ func TestUnmarshallingXml(t *testing.T) {
 	check(result.Channel.Items[0].Link, "Item1Link", t)
 	check(result.Channel.Items[0].Enclosure.Url, "enc1Url", t)
 	check(result.Channel.Items[0].Enclosure.Type, "enc1Type", t)
+	check(result.Channel.Items[0].Attributes.Type, "attrType1", t)
+	check(result.Channel.Items[0].Attributes.Url, "attrUrl1", t)
 
 	check(result.Channel.Items[1].Guid, "Item2GUID", t)
 	check(result.Channel.Items[1].Link, "Item2Link", t)
 	check(result.Channel.Items[1].Enclosure.Url, "enc2Url", t)
 	check(result.Channel.Items[1].Enclosure.Type, "enc2Type", t)
+	check(result.Channel.Items[1].Attributes.Type, "attrType2", t)
+	check(result.Channel.Items[1].Attributes.Url, "attrUrl2", t)
 }
 
 func check(actual, expected string, t *testing.T) {
 	if actual != expected {
-		t.Fatalf("expected: %s but got %s", expected, actual)
+		t.Fatalf("expected: '%s' but got '%s'", expected, actual)
 	}
 }
 
