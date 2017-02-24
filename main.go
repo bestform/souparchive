@@ -30,7 +30,7 @@ func main() {
 	}
 
 	accountPtr := flag.String("user", "", "soup.io username")
-	hostLocalArchive := flag.Bool("host", false, "host the local archive on port 8080")
+	hostLocalArchive := flag.Bool("host", false, "host the local archive on port 8080 (incomplete feature. stay tuned.)")
 	flag.Parse()
 
 	if *hostLocalArchive {
