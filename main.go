@@ -73,7 +73,7 @@ func main() {
 		wg.Add(1)
 		go func(i feed.Item, a db.Archive, c chan db.Item) {
 			defer wg.Done()
-			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
+			fmt.Printf("Saving %s...\n", i.Attributes.Url)
 			guid, timestamp, err := fetch.Fetch(i, a)
 			if err != nil {
 				fmt.Println(err)
