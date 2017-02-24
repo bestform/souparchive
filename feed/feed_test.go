@@ -18,7 +18,7 @@ func TestUnmarshallingXml(t *testing.T) {
        <soup:attributes>
 	 {"type":"attrType1","url":"attrUrl1"}
        </soup:attributes>
-       <PubDate>Thu, 23 Feb 2017 14:14:29 GMT</PubDate>
+       <pubDate>Thu, 23 Feb 2017 14:14:29 GMT</pubDate>
        <link>Item1Link</link>
        <guid>Item1GUID</guid>
     </item>
@@ -27,7 +27,7 @@ func TestUnmarshallingXml(t *testing.T) {
        <soup:attributes>
 	 {"type":"attrType2","url":"attrUrl2"}
        </soup:attributes>
-       <PubDate>Fri, 24 Feb 2017 14:14:29 GMT</PubDate>
+       <pubDate>Fri, 24 Feb 2017 14:14:29 GMT</pubDate>
        <link>Item2Link</link>
        <guid>Item2GUID</guid>
     </item>

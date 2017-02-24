@@ -27,7 +27,7 @@ type Item struct {
 	Enclosure  Enclosure  `xml:"enclosure"`
 	Link       string     `xml:"link"`
 	Guid       string     `xml:"guid"`
-	PubDate    PubDate    `xml:"PubDate"`
+	PubDate    PubDate    `xml:"pubDate"`
 	Attributes Attributes `xml:"attributes"`
 }
 
