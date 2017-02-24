@@ -1,13 +1,13 @@
 package db
 
 import (
-	"testing"
 	"os"
 	"path/filepath"
+	"testing"
 )
 
 func TestReadArchive(t *testing.T) {
-	a := NewArchive("fixtures/guids.json")
+	a := NewArchive("fixtures/archive.json")
 	a.Read()
 
 	if len(a.Data.Guid) != 2 {
@@ -25,14 +25,14 @@ func TestReadArchive(t *testing.T) {
 func TestAddToAndPersistArchive(t *testing.T) {
 	tempdir := os.TempDir()
 
-	a := NewArchive(filepath.Join(tempdir, "guids.json"))
+	a := NewArchive(filepath.Join(tempdir, "archive.json"))
 
 	a.Add("foo")
 	a.Add("bar")
 
 	a.Persist()
 
-	b := NewArchive(filepath.Join(tempdir, "guids.json"))
+	b := NewArchive(filepath.Join(tempdir, "archive.json"))
 	b.Read()
 
 	if len(b.Data.Guid) != 2 {
@@ -47,7 +47,7 @@ func TestAddToAndPersistArchive(t *testing.T) {
 }
 
 func TestArchiveContains(t *testing.T) {
-	a := NewArchive("fixtures/guids.json")
+	a := NewArchive("fixtures/archive.json")
 	a.Read()
 
 	if a.Contains("1") == false {

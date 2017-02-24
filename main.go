@@ -64,7 +64,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	a := db.NewArchive("archive/guids.json")
+	a := db.NewArchive("archive/archive.json")
 	a.Read()
 
 	c := make(chan string)
