@@ -67,11 +67,11 @@ func main() {
 	a := db.NewArchive("archive/archive.json")
 	a.Read()
 
-	c := make(chan string)
+	c := make(chan db.Item)
 
 	for _, i := range rssFeed.Channel.Items {
 		wg.Add(1)
-		go func(i feed.Item, a db.Archive, c chan string) {
+		go func(i feed.Item, a db.Archive, c chan db.Item) {
 			defer wg.Done()
 			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
 			guid, err := fetch.Fetch(i, a)
@@ -79,15 +79,15 @@ func main() {
 				fmt.Println(err)
 				return
 			}
-			c <- guid
+			c <- db.Item{guid, 0} // @todo: let fetch.Fetch return a timestamp as well
 		}(i, a, c)
 	}
 
 	waitForArchive := make(chan bool)
-	go func(c chan string) {
-		for guid := range c {
+	go func(c chan db.Item) {
+		for item := range c {
 			a.Read()
-			a.Add(guid)
+			a.Add(item.Guid, item.Timestamp)
 			err := a.Persist()
 			if err != nil {
 				fmt.Println("error persisting database", err)

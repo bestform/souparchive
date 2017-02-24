@@ -57,7 +57,7 @@ func (d *defaultOsLayer) Copy(w io.Writer, r io.Reader) (int64, error) {
 var osl osLayer = &defaultOsLayer{}
 var httpc httpClient = &defaultHttpClient{}
 
-// Fetch tries to download the item contained in the given feed.Item, if it isn't already in the archive
+// Fetch tries to download the item contained in the given feed.Items, if it isn't already in the archive
 func Fetch(i feed.Item, a db.Archive) (string, error) {
 	if a.Contains(i.Guid) {
 		// already in archive

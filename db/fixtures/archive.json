@@ -1,1 +1,6 @@
-{"guid":["1","2"]}
+{
+  "items": [
+    {"guid":"1", "timestamp":100},
+    {"guid":"2", "timestamp":200}
+  ]
+}

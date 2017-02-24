@@ -15,7 +15,12 @@ type Archive struct {
 
 // Data is just a list of guids that have already been processed for a given feed
 type Data struct {
-	Guid []string `json:"guid"`
+	Items []Item `json:"items"`
+}
+
+type Item struct {
+	Guid      string `json:"guid"`
+	Timestamp int64  `json:"timestamp"`
 }
 
 // NewArchive will create a new Archive struct with the given path
@@ -41,8 +46,8 @@ func (a *Archive) Read() {
 
 // Contains will return true, if the guid is already part of the archive
 func (a *Archive) Contains(guid string) bool {
-	for _, s := range a.Data.Guid {
-		if guid == s {
+	for _, i := range a.Data.Items {
+		if i.Guid == guid {
 			return true
 		}
 	}
@@ -51,8 +56,8 @@ func (a *Archive) Contains(guid string) bool {
 }
 
 // Add will add the guid to the archive. Keep in mind that this is only in memory until Persist() is called
-func (a *Archive) Add(guid string) error {
-	a.Data.Guid = append(a.Data.Guid, guid)
+func (a *Archive) Add(guid string, timestamp int64) error {
+	a.Data.Items = append(a.Data.Items, Item{guid, timestamp})
 
 	return nil
 }

@@ -61,7 +61,7 @@ func (t *testBody) Close() error {
 
 func TestReturnOnItemAlreadyInArchive(t *testing.T) {
 	a := db.Archive{}
-	a.Data.Guid = append(a.Data.Guid, "foo")
+	a.Data.Items = append(a.Data.Items, db.Item{"foo", 0})
 	i := feed.Item{}
 	i.Guid = "foo"
 
