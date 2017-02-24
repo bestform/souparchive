@@ -58,34 +58,34 @@ var osl osLayer = &defaultOsLayer{}
 var httpc httpClient = &defaultHttpClient{}
 
 // Fetch tries to download the item contained in the given feed.Items, if it isn't already in the archive
-func Fetch(i feed.Item, a db.Archive) (string, error) {
+func Fetch(i feed.Item, a db.Archive) (string, int64, error) {
 	if a.Contains(i.Guid) {
 		// already in archive
-		return "", errors.New(i.Attributes.Url + " already in archive")
+		return "", 0, errors.New(i.Attributes.Url + " already in archive")
 	}
 
 	response, err := httpc.Get(i.Attributes.Url)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error fetching %s: %s", i.Attributes.Url, err))
+		return "", 0, errors.New(fmt.Sprintf("Error fetching %s: %s", i.Attributes.Url, err))
 	}
 	if response.StatusCode != http.StatusOK {
-		return "", errors.New(fmt.Sprintf("Error fetching %s: Status %d", i.Attributes.Url, response.StatusCode))
+		return "", 0, errors.New(fmt.Sprintf("Error fetching %s: Status %d", i.Attributes.Url, response.StatusCode))
 	}
 
 	filepath := "archive/" + path.Base(i.Enclosure.Url)
 	file, err := osl.Create(filepath)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("Error opening file %s: %s", filepath, err))
+		return "", 0, errors.New(fmt.Sprintf("Error opening file %s: %s", filepath, err))
 	}
 
 	_, err = osl.Copy(file, response.Body)
 	if err != nil {
 		response.Body.Close()
 		file.Close()
-		return "", errors.New(fmt.Sprintf("Error writing file %s: %s", filepath, err))
+		return "", 0, errors.New(fmt.Sprintf("Error writing file %s: %s", filepath, err))
 	}
 	response.Body.Close()
 	file.Close()
 
-	return i.Guid, nil
+	return i.Guid, i.PubDate.Unix(), nil
 }

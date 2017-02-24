@@ -6,6 +6,8 @@ import (
 
 	"net/http"
 
+	"time"
+
 	"github.com/bestform/souparchive/db"
 	"github.com/bestform/souparchive/feed"
 	"github.com/pkg/errors"
@@ -65,7 +67,7 @@ func TestReturnOnItemAlreadyInArchive(t *testing.T) {
 	i := feed.Item{}
 	i.Guid = "foo"
 
-	_, err := Fetch(i, a)
+	_, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on item already in archive, but got none")
 	}
@@ -94,7 +96,7 @@ func TestErrorOnGetError(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 
-	_, err := Fetch(i, a)
+	_, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on http get error, but got nil")
 	}
@@ -109,7 +111,7 @@ func TestErrorOnBadHttpStatus(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 
-	_, err := Fetch(i, a)
+	_, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on bad http status, but got nil")
 	}
@@ -159,15 +161,18 @@ func TestReturnOfGuidOnSuccessfulCopy(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 	i.Guid = "foo"
-	i.Enclosure.Url = "foo/bar/baz"
+	i.PubDate = feed.PubDate{time.Unix(100, 0)}
 
-	guid, err := Fetch(i, a)
+	guid, timestamp, err := Fetch(i, a)
 	if err != nil {
 		t.Fatal("Expected return of guid without error but got", err)
 	}
 
 	if guid != "foo" {
 		t.Fatal("Expected returned guid to be 'foo', but got", guid)
+	}
 
+	if timestamp != 100 {
+		t.Fatal("Expected timestamp to be 100, got", timestamp)
 	}
 }

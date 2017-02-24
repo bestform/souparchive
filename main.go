@@ -74,12 +74,12 @@ func main() {
 		go func(i feed.Item, a db.Archive, c chan db.Item) {
 			defer wg.Done()
 			fmt.Printf("Saving %s...\n", i.Enclosure.Url)
-			guid, err := fetch.Fetch(i, a)
+			guid, timestamp, err := fetch.Fetch(i, a)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-			c <- db.Item{guid, 0} // @todo: let fetch.Fetch return a timestamp as well
+			c <- db.Item{guid, timestamp}
 		}(i, a, c)
 	}
 

@@ -18,7 +18,7 @@ func TestUnmarshallingXml(t *testing.T) {
        <soup:attributes>
 	 {"type":"attrType1","url":"attrUrl1"}
        </soup:attributes>
-       <pubDate>Thu, 23 Feb 2017 14:14:29 GMT</pubDate>
+       <PubDate>Thu, 23 Feb 2017 14:14:29 GMT</PubDate>
        <link>Item1Link</link>
        <guid>Item1GUID</guid>
     </item>
@@ -27,7 +27,7 @@ func TestUnmarshallingXml(t *testing.T) {
        <soup:attributes>
 	 {"type":"attrType2","url":"attrUrl2"}
        </soup:attributes>
-       <pubDate>Fri, 24 Feb 2017 14:14:29 GMT</pubDate>
+       <PubDate>Fri, 24 Feb 2017 14:14:29 GMT</PubDate>
        <link>Item2Link</link>
        <guid>Item2GUID</guid>
     </item>
@@ -71,7 +71,7 @@ func check(actual, expected string, t *testing.T) {
 	}
 }
 
-func checkTime(actual pubDate, expected time.Time, t *testing.T) {
+func checkTime(actual PubDate, expected time.Time, t *testing.T) {
 	if !actual.Equal(expected) {
 		t.Fatalf("Dates not equivalent. Expected: %v, got: %v", expected, actual)
 	}

@@ -27,7 +27,7 @@ type Item struct {
 	Enclosure  Enclosure  `xml:"enclosure"`
 	Link       string     `xml:"link"`
 	Guid       string     `xml:"guid"`
-	PubDate    pubDate    `xml:"pubDate"`
+	PubDate    PubDate    `xml:"PubDate"`
 	Attributes Attributes `xml:"attributes"`
 }
 
@@ -59,20 +59,20 @@ func (c *Attributes) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 	return nil
 }
 
-// pubDate wraps time.Time to implement the needed interface for the xml unmarshaller
-type pubDate struct {
+// PubDate wraps time.Time to implement the needed interface for the xml unmarshaller
+type PubDate struct {
 	time.Time
 }
 
 // UnmarshalXML will parse the time format in the feed
-func (c *pubDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (c *PubDate) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var v string
 	d.DecodeElement(&v, &start)
 	parse, err := time.Parse(time.RFC1123, v)
 	if err != nil {
 		return err
 	}
-	*c = pubDate{parse}
+	*c = PubDate{parse}
 
 	return nil
 }
