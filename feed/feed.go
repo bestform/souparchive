@@ -3,6 +3,8 @@ package feed
 import (
 	"encoding/xml"
 	"fmt"
+	"os"
+	"io/ioutil"
 )
 
 // Rss it the root node of the rss feed containing just one Channel node
@@ -39,7 +41,38 @@ func NewFeedFromXml(input []byte) Rss {
 	return feed
 }
 
+type localFileLister interface {
+	getLocalFilesInfo() ([]os.FileInfo, error)
+}
+
+type defaultLocalFileLister struct {}
+func (d defaultLocalFileLister) getLocalFilesInfo() ([]os.FileInfo, error) {
+	return ioutil.ReadDir("../archive")
+}
+
+var fileLister localFileLister = defaultLocalFileLister{}
+
 // GetFeedUrlForUsername produces the rss feed url for a given username
 func GetFeedUrlForUsername(user string) string {
 	return fmt.Sprintf("http://%s.soup.io/rss", user)
+}
+
+// GetLocalArchiveFeed creates a feed including all locally archived data
+func GetLocalArchiveFeed() (Rss, error) {
+	rss := Rss{}
+	fileInfos, err := fileLister.getLocalFilesInfo()
+	if err != nil {
+		return rss, err
+	}
+
+	rss.Channel.Items = make([]Item, len(fileInfos))
+
+	for i, info := range fileInfos {
+		item := Item{}
+		enc := Enclosure{Url:info.Name()}
+		item.Enclosure = enc
+		rss.Channel.Items[i] = item
+	}
+
+	return rss, nil
 }

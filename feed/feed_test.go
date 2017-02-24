@@ -2,6 +2,8 @@ package feed
 
 import (
 	"testing"
+	"os"
+	"time"
 )
 
 func TestUnmarshallingXml(t *testing.T) {
@@ -56,4 +58,60 @@ func TestUrlCreation(t *testing.T) {
 	if url != "http://foo.soup.io/rss" {
 		t.Fatalf("Wrong feed URL: %s", url)
 	}
+}
+
+type testFileLister struct {
+	filenames []string
+	err error
+}
+
+type testFile struct {
+	name string
+	size int64
+	mode os.FileMode
+	modTime time.Time
+	isDir bool
+	sys interface{}
+}
+
+func (t testFile) Name() string { return t.name }
+func (t testFile) Size() int64 { return t.size }
+func (t testFile) Mode() os.FileMode { return t.mode }
+func (t testFile) ModTime() time.Time { return t.modTime }
+func (t testFile) IsDir() bool { return t.isDir }
+func (t testFile) Sys() interface{} { return t.sys }
+
+func (t testFileLister) getLocalFilesInfo() ([]os.FileInfo, error) {
+	if t.err != nil {
+		return nil, t.err
+	}
+
+	fileInfos := make([]os.FileInfo, len(t.filenames))
+	for i, name := range t.filenames {
+		fileInfos[i] = testFile{name:name}
+	}
+
+	return fileInfos, nil
+}
+
+func TestGetLocalArchiveFeed(t *testing.T) {
+	fileLister = testFileLister{filenames:[]string{"foo.jpg","bar.gif"}}
+
+	feed, err := GetLocalArchiveFeed()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(feed.Channel.Items) != 2 {
+		t.Fatalf("Expected 2 elements in feed, got %d", len(feed.Channel.Items))
+	}
+
+	expectedNames := []string{"foo.jpg","bar.gif"}
+
+	for i, item := range feed.Channel.Items {
+		if item.Enclosure.Url != expectedNames[i] {
+			t.Fatalf("Expected url %s on position %d, but got %s", expectedNames[i], i, item.Enclosure.Url)
+		}
+	}
+
 }
