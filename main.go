@@ -73,6 +73,11 @@ func main() {
 		wg.Add(1)
 		go func(i feed.Item, a db.Archive, c chan db.Item) {
 			defer wg.Done()
+			if "" == i.Attributes.Url {
+				// some entries do not have a single url to save.
+				// for now we are going to skip those
+				return
+			}
 			fmt.Printf("Saving %s...\n", i.Attributes.Url)
 			guid, timestamp, err := fetch.Fetch(i, a)
 			if err != nil {

@@ -30,8 +30,11 @@ type defaultHttpClient struct{}
 // Get wraps http.Get and produces a response as defined privately in this package
 func (d *defaultHttpClient) Get(url string) (*response, error) {
 	resp, err := http.Get(url)
+	if err != nil {
+		return &response{}, err
+	}
 
-	return &response{StatusCode: resp.StatusCode, Body: resp.Body}, err
+	return &response{StatusCode: resp.StatusCode, Body: resp.Body}, nil
 }
 
 // osLayer abstracts the needed interface from the io and os packages to be able to mock them in tests
