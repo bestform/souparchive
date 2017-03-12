@@ -63,11 +63,11 @@ func (t *testBody) Close() error {
 
 func TestReturnOnItemAlreadyInArchive(t *testing.T) {
 	a := db.Archive{}
-	a.Data.Items = append(a.Data.Items, db.Item{"foo", 0})
+	a.Data.Items = append(a.Data.Items, db.Item{"foo", 0, "testfile"})
 	i := feed.Item{}
 	i.Guid = "foo"
 
-	_, _, err := Fetch(i, a)
+	_, _, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on item already in archive, but got none")
 	}
@@ -96,7 +96,7 @@ func TestErrorOnGetError(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 
-	_, _, err := Fetch(i, a)
+	_, _, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on http get error, but got nil")
 	}
@@ -111,7 +111,7 @@ func TestErrorOnBadHttpStatus(t *testing.T) {
 	a := db.Archive{}
 	i := feed.Item{}
 
-	_, _, err := Fetch(i, a)
+	_, _, _, err := Fetch(i, a)
 	if err == nil {
 		t.Fatal("Expected error on bad http status, but got nil")
 	}
@@ -126,7 +126,7 @@ func TestCreateCorrectFile(t *testing.T) {
 	httpc = mockHttpClient
 	a := db.Archive{}
 	i := feed.Item{}
-	i.Enclosure.Url = "foo/bar/baz"
+	i.Attributes.Url = "foo/bar/baz"
 
 	Fetch(i, a)
 	if mockOsLayer.created != "archive/baz" {
@@ -151,7 +151,7 @@ func TestCopyFromResponse(t *testing.T) {
 	}
 }
 
-func TestReturnOfGuidOnSuccessfulCopy(t *testing.T) {
+func TestReturnOfGuidAndFilenameOnSuccessfulCopy(t *testing.T) {
 	mockOsLayer := testOsLayer{}
 	osl = &mockOsLayer
 	mockHttpClient := &testHttpClient{}
@@ -162,8 +162,9 @@ func TestReturnOfGuidOnSuccessfulCopy(t *testing.T) {
 	i := feed.Item{}
 	i.Guid = "foo"
 	i.PubDate = feed.PubDate{time.Unix(100, 0)}
+	i.Attributes.Url = "testurl"
 
-	guid, timestamp, err := Fetch(i, a)
+	guid, timestamp, filename, err := Fetch(i, a)
 	if err != nil {
 		t.Fatal("Expected return of guid without error but got", err)
 	}
@@ -174,5 +175,9 @@ func TestReturnOfGuidOnSuccessfulCopy(t *testing.T) {
 
 	if timestamp != 100 {
 		t.Fatal("Expected timestamp to be 100, got", timestamp)
+	}
+
+	if filename != "testurl" {
+		t.Fatal("Expected filename to be 'testurl', got", filename)
 	}
 }

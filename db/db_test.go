@@ -26,6 +26,13 @@ func TestReadArchive(t *testing.T) {
 	if a.Data.Items[1].Timestamp != 200 {
 		t.Fatalf("Expected second element to have timestamp '200', got '%s'", a.Data.Items[0].Timestamp)
 	}
+	if a.Data.Items[0].Filename != "filename1" {
+		t.Fatalf("Expected first element to have filename 'filename1', got '%s'", a.Data.Items[0].Filename)
+	}
+	if a.Data.Items[1].Filename != "filename2" {
+		t.Fatalf("Expected second element to have filename 'filename2', got '%s'", a.Data.Items[0].Filename)
+	}
+
 }
 
 func TestAddToAndPersistArchive(t *testing.T) {
@@ -33,8 +40,8 @@ func TestAddToAndPersistArchive(t *testing.T) {
 
 	a := NewArchive(filepath.Join(tempdir, "archive.json"))
 
-	a.Add("foo", 100)
-	a.Add("bar", 200)
+	a.Add("foo", 100, "filename1")
+	a.Add("bar", 200, "filename2")
 
 	a.Persist()
 
@@ -56,6 +63,13 @@ func TestAddToAndPersistArchive(t *testing.T) {
 	if a.Data.Items[1].Timestamp != 200 {
 		t.Fatalf("Expected second element to have timestamp '200', got '%s'", a.Data.Items[0].Timestamp)
 	}
+	if a.Data.Items[0].Filename != "filename1" {
+		t.Fatalf("Expected first element to have filename 'filename1', got '%s'", a.Data.Items[0].Filename)
+	}
+	if a.Data.Items[1].Filename != "filename2" {
+		t.Fatalf("Expected second element to have filename 'filename2', got '%s'", a.Data.Items[0].Filename)
+	}
+
 }
 
 func TestArchiveContains(t *testing.T) {

@@ -21,6 +21,7 @@ type Data struct {
 type Item struct {
 	Guid      string `json:"guid"`
 	Timestamp int64  `json:"timestamp"`
+	Filename  string `json:"filename"`
 }
 
 // NewArchive will create a new Archive struct with the given path
@@ -56,8 +57,8 @@ func (a *Archive) Contains(guid string) bool {
 }
 
 // Add will add the guid to the archive. Keep in mind that this is only in memory until Persist() is called
-func (a *Archive) Add(guid string, timestamp int64) error {
-	a.Data.Items = append(a.Data.Items, Item{guid, timestamp})
+func (a *Archive) Add(guid string, timestamp int64, filename string) error {
+	a.Data.Items = append(a.Data.Items, Item{guid, timestamp, filename})
 
 	return nil
 }

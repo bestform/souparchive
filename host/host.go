@@ -12,7 +12,7 @@ type entry struct {
 
 var localFeed feed.Rss
 
-// Host wil host the current archive on localhost via the specified port
+// Host will host the current archive on localhost via the specified port
 func Host(port string) error {
 	var err error
 	localFeed, err = feed.GetLocalArchiveFeed()
@@ -26,8 +26,11 @@ func Host(port string) error {
 }
 
 func hostList(w http.ResponseWriter, r *http.Request) {
-	for _, item := range localFeed.Channel.Items {
-		w.Write([]byte(item.Enclosure.Url))
+
+
+
+    for _, item := range localFeed.Channel.Items {
+		w.Write([]byte(item.Attributes.Url))
 		w.Write([]byte("\n"))
 	}
 }

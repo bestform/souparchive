@@ -79,12 +79,12 @@ func main() {
 				return
 			}
 			fmt.Printf("Saving %s...\n", i.Attributes.Url)
-			guid, timestamp, err := fetch.Fetch(i, a)
+			guid, timestamp, filename, err := fetch.Fetch(i, a)
 			if err != nil {
 				fmt.Println(err)
 				return
 			}
-			c <- db.Item{guid, timestamp}
+			c <- db.Item{guid, timestamp, filename}
 		}(i, a, c)
 	}
 
@@ -92,7 +92,7 @@ func main() {
 	go func(c chan db.Item) {
 		for item := range c {
 			a.Read()
-			a.Add(item.Guid, item.Timestamp)
+			a.Add(item.Guid, item.Timestamp, item.Filename)
 			err := a.Persist()
 			if err != nil {
 				fmt.Println("error persisting database", err)

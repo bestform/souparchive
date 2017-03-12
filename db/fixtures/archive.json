@@ -1,6 +1,6 @@
 {
   "items": [
-    {"guid":"1", "timestamp":100},
-    {"guid":"2", "timestamp":200}
+    {"guid":"1", "timestamp":100, "filename":"filename1"},
+    {"guid":"2", "timestamp":200, "filename":"filename2"}
   ]
 }
