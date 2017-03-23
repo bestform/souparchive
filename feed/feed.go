@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
-	"os"
 	"time"
 )
 
@@ -85,44 +83,7 @@ func NewFeedFromXml(input []byte) Rss {
 	return feed
 }
 
-// localFileLister wraps the needed functions from the os package so it can be substituted in tests
-type localFileLister interface {
-	getLocalFilesInfo() ([]os.FileInfo, error)
-}
-
-// defaultLocalFileLister is a thin wrapper around the stdlib
-type defaultLocalFileLister struct{}
-
-// getLocalFilesInfo just calls ioutil.ReadDir
-func (d defaultLocalFileLister) getLocalFilesInfo() ([]os.FileInfo, error) {
-	return ioutil.ReadDir("archive")
-}
-
-// fileLister is the active implementation for file system calls. It will be substituted in tests and cannot be changed
-// from outside the package
-var fileLister localFileLister = defaultLocalFileLister{}
-
 // GetFeedUrlForUsername produces the rss feed url for a given username
 func GetFeedUrlForUsername(user string) string {
 	return fmt.Sprintf("http://%s.soup.io/rss", user)
-}
-
-// GetLocalArchiveFeed creates a feed including all locally archived data
-func GetLocalArchiveFeed() (Rss, error) {
-	rss := Rss{}
-	fileInfos, err := fileLister.getLocalFilesInfo()
-	if err != nil {
-		return rss, err
-	}
-
-	rss.Channel.Items = make([]Item, len(fileInfos))
-
-	for i, info := range fileInfos {
-		item := Item{}
-		enc := Enclosure{Url: info.Name()}
-		item.Enclosure = enc
-		rss.Channel.Items[i] = item
-	}
-
-	return rss, nil
 }

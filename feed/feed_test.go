@@ -117,25 +117,3 @@ func (t testFileLister) getLocalFilesInfo() ([]os.FileInfo, error) {
 
 	return fileInfos, nil
 }
-
-func TestGetLocalArchiveFeed(t *testing.T) {
-	fileLister = testFileLister{filenames: []string{"foo.jpg", "bar.gif"}}
-
-	feed, err := GetLocalArchiveFeed()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(feed.Channel.Items) != 2 {
-		t.Fatalf("Expected 2 elements in feed, got %d", len(feed.Channel.Items))
-	}
-
-	expectedNames := []string{"foo.jpg", "bar.gif"}
-
-	for i, item := range feed.Channel.Items {
-		if item.Enclosure.Url != expectedNames[i] {
-			t.Fatalf("Expected url %s on position %d, but got %s", expectedNames[i], i, item.Enclosure.Url)
-		}
-	}
-
-}
